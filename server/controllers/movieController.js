@@ -1,31 +1,59 @@
-const movieModel = require('../models/movieModel.js');
-const apiHelpers = require('../helpers/apiHelpers.js');
+const movieModel = require("../models/movieModel.js");
+const apiHelpers = require("../helpers/apiHelpers.js");
+const API_KEY = require("../../config.js").API_KEY;
+// console.log("API_KEY", API_KEY);
+const axios = require("axios");
 
-//Return requests to the client
 module.exports = {
   getSearch: (req, res) => {
-    // get the search genre     
+    // requires client to send genre in query
 
-    // https://www.themoviedb.org/account/signup
-    // get your API KEY
-
-    // use this endpoint to search for movies by genres, you will need an API key
-
-    // https://api.themoviedb.org/3/discover/movie
-
-    // and sort them by horrible votes using the search parameters in the API
+    let genreID = req.query.genre;
+    // 28 is Action
+    axios
+      .get("https://api.themoviedb.org/3/discover/movie", {
+        params: {
+          api_key: API_KEY,
+          with_genres: genreID,
+          sort_by: "vote_average.desc"
+        }
+      })
+      .then(({ data }) => {
+        res.send(data.results);
+      })
+      .catch(err => {
+        console.log(err);
+      });
   },
   getGenres: (req, res) => {
-    // make an axios request to get the list of official genres
-    
-    // use this endpoint, which will also require your API key: https://api.themoviedb.org/3/genre/movie/list
-    
-    // send back
+    // does not require client to send anything
+    axios
+      .get("https://api.themoviedb.org/3/genre/movie/list", {
+        params: {
+          api_key: API_KEY
+        }
+      })
+      .then(({ data }) => {
+        res.send(data.genres);
+      })
+      .catch(err => {
+        console.log(err);
+      });
   },
   saveMovie: (req, res) => {
-
+    // requires client to send full details of movie to server as {}
+    const movie = req.body;
+    movieModel.db
+      .addFavorite(movie)
+      .then(saved => {
+        console.log(saved);
+        res.send(saved);
+      })
+      .catch(err => {
+        console.log(err);
+      });
   },
   deleteMovie: (req, res) => {
-
+    // requires client to send title of movie to delete
   }
-}
+};
