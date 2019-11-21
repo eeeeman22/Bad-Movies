@@ -47,4 +47,16 @@ db.addFavorite = movie => {
   });
 };
 
+db.removeFavorite = movie => {
+  return new Promise((resolve, reject) => {
+    Movie.remove({ title: movie.title }, err => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve("removed (-rf)");
+      }
+    });
+  });
+};
+
 module.exports = db;
