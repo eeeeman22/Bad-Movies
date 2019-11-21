@@ -55,5 +55,15 @@ module.exports = {
   },
   deleteMovie: (req, res) => {
     // requires client to send title of movie to delete
+    let movie = req.body;
+    movieModel.db
+      .removeFavorite(movie)
+      .then(removed => {
+        console.log(removed);
+        res.send(removed);
+      })
+      .catch(err => {
+        console.log(err);
+      });
   }
 };
