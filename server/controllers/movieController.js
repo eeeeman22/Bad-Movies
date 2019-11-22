@@ -1,15 +1,13 @@
 const movieModel = require("../models/movieModel.js");
-const apiHelpers = require("../helpers/apiHelpers.js");
 const API_KEY = require("../../config.js").API_KEY;
-// console.log("API_KEY", API_KEY);
+const db = require("../../db/mongodb/index");
 const axios = require("axios");
 
 module.exports = {
   getSearch: (req, res) => {
     // requires client to send genre in query
-
     let genreID = req.query.genre;
-    // 28 is Action
+
     axios
       .get("https://api.themoviedb.org/3/discover/movie", {
         params: {
@@ -19,6 +17,7 @@ module.exports = {
         }
       })
       .then(({ data }) => {
+        parseImages(data.results);
         res.send(data.results);
       })
       .catch(err => {
@@ -26,7 +25,6 @@ module.exports = {
       });
   },
   getGenres: (req, res) => {
-    // does not require client to send anything
     axios
       .get("https://api.themoviedb.org/3/genre/movie/list", {
         params: {
@@ -34,20 +32,27 @@ module.exports = {
         }
       })
       .then(({ data }) => {
-        res.send(data.genres);
+        res.send(data);
       })
       .catch(err => {
         console.log(err);
       });
+  },
+  getFavorites: (req, res) => {
+    db.getFavorites().then(results => {
+      res.send(results);
+    });
   },
   saveMovie: (req, res) => {
     // requires client to send full details of movie to server as {}
     const movie = req.body;
     movieModel.db
       .addFavorite(movie)
-      .then(saved => {
-        console.log(saved);
-        res.send(saved);
+      .then(() => {
+        return db.getFavorites();
+      })
+      .then(results => {
+        res.send(results);
       })
       .catch(err => {
         console.log(err);
@@ -55,9 +60,9 @@ module.exports = {
   },
   deleteMovie: (req, res) => {
     // requires client to send title of movie to delete
-    let movie = req.body;
+    let movieTitle = req.query.title;
     movieModel.db
-      .removeFavorite(movie)
+      .removeFavorite(movieTitle)
       .then(removed => {
         console.log(removed);
         res.send(removed);
@@ -65,5 +70,17 @@ module.exports = {
       .catch(err => {
         console.log(err);
       });
+  }
+};
+
+parseImages = resultsArray => {
+  for (let i = 0; i < resultsArray.length; i++) {
+    if (!resultsArray[i].poster_path) {
+      resultsArray[i].poster_path = "unknown.png";
+    } else {
+      resultsArray[
+        i
+      ].poster_path = `https://image.tmdb.org/t/p/w500/${resultsArray[i].poster_path}`;
+    }
   }
 };

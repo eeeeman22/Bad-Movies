@@ -17,12 +17,10 @@ db.once("open", () => {
 
 const badMovieList = mongoose.Schema({
   title: String,
-  genres: Array,
-  release_date: String,
   poster: String,
+  release_date: String,
   popularity: Number,
-  vote_avg: Number,
-  favorite: Boolean
+  vote_average: Number
 });
 
 const Movie = mongoose.model("BadMovie", badMovieList);
@@ -30,12 +28,10 @@ db.addFavorite = movie => {
   return new Promise((resolve, reject) => {
     let item = new Movie({
       title: movie.title,
-      genres: movie.genre_ids,
-      release_date: movie.release_date,
       poster: movie.poster_path,
-      popularity: movie.poster,
-      vote_avg: movie.vote_average,
-      favorite: true
+      release_date: movie.release_date,
+      popularity: movie.popularity,
+      vote_average: movie.vote_average
     });
     item.save(err => {
       if (err) {
@@ -47,16 +43,12 @@ db.addFavorite = movie => {
   });
 };
 
-db.removeFavorite = movie => {
-  return new Promise((resolve, reject) => {
-    Movie.remove({ title: movie.title }, err => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve("removed (-rf)");
-      }
-    });
-  });
+db.removeFavorite = movieTitle => {
+  return Movie.deleteMany({ title: movieTitle });
+};
+
+db.getFavorites = () => {
+  return Movie.find();
 };
 
 module.exports = db;

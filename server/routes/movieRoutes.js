@@ -3,6 +3,7 @@
 const router = require("express").Router();
 const movieController = require("../controllers/movieController.js");
 
+router.get("/favorites", movieController.getFavorites);
 //Route different requests to different endpoints
 router.get("/search", movieController.getSearch);
 // use this endpoint to search for movies by genres (using API key): https://api.themoviedb.org/3/discover/movie
